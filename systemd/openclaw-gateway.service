@@ -14,7 +14,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/openclaw gateway --port 18789
+ExecStart=%h/.npm-global/bin/openclaw gateway --port 18789
 Restart=on-failure
 RestartSec=5
 Environment=OPENCLAW_GATEWAY_PORT=18789
