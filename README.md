@@ -2,6 +2,11 @@
 
 OpenClaw Gateway 健康检查工具 - 监控、诊断、自动恢复。
 
+> ⚠️ **注意：这是监控工具，不是安装工具。**
+> 
+> 本工具用于监控**已有的** OpenClaw Gateway 服务，不会安装或卸载 OpenClaw。
+> 如果你还没安装 OpenClaw，请参考 [OpenClaw 文档](https://docs.openclaw.ai)。
+
 ## 解决什么问题？
 
 当你在使用 OpenClaw（AI 助手）时，可能会遇到以下情况：
@@ -22,7 +27,6 @@ OpenClaw Gateway 健康检查工具 - 监控、诊断、自动恢复。
 |------|------|------|
 | `doctor.sh` | 一键诊断 | 手动排查问题，交互式修复 |
 | `health-check.sh` | 健康检查 | 定时任务用，自动检测+重启 |
-| `install-service.sh` | 安装服务 | 配置 systemd 服务（Linux） |
 | `install-cron.sh` | 安装定时任务 | 配置定时健康检查 |
 
 ## 快速开始
@@ -99,22 +103,6 @@ chmod +x scripts/*.sh
 ./scripts/health-check.sh --restart --notify  # 重启并发送通知
 ```
 
-### install-service.sh - 安装 systemd 服务（Linux）
-
-将 Gateway 配置为 systemd 用户服务，开机自启。
-
-```bash
-./scripts/install-service.sh           # 安装服务
-./scripts/install-service.sh --uninstall  # 卸载服务
-```
-
-安装后可用：
-```bash
-systemctl --user status openclaw-gateway   # 查看状态
-journalctl --user -u openclaw-gateway -f   # 查看日志
-systemctl --user restart openclaw-gateway  # 重启服务
-```
-
 ### install-cron.sh - 安装定时任务
 
 ```bash
@@ -158,10 +146,7 @@ openclaw-healthcheck/
 ├── scripts/
 │   ├── doctor.sh                       # 一键诊断
 │   ├── health-check.sh                 # 健康检查
-│   ├── install-service.sh              # 安装 systemd 服务
 │   └── install-cron.sh                 # 安装定时任务
-├── systemd/
-│   └── openclaw-gateway.service        # systemd 服务模板
 ├── docs/                               # 更多文档（预留）
 └── logs/                               # 日志目录（自动创建）
     ├── health-check.log                # 健康检查日志
@@ -172,8 +157,8 @@ openclaw-healthcheck/
 
 | 系统 | 支持 | 说明 |
 |------|------|------|
-| Linux | ✅ 完全支持 | 支持 systemd 服务 |
-| macOS | ✅ 基本支持 | 不支持 systemd，其他功能正常 |
+| Linux | ✅ 完全支持 | 支持 systemd 服务管理 |
+| macOS | ✅ 基本支持 | 使用进程检测重启 |
 | WSL | ✅ 支持 | systemd 可能不稳定，但检测功能正常 |
 
 依赖：
