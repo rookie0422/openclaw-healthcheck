@@ -1,0 +1,26 @@
+# OpenClaw Gateway Systemd Service
+# 安装方法:
+#   1. 复制到 ~/.config/systemd/user/openclaw-gateway.service
+#   2. systemctl --user daemon-reload
+#   3. systemctl --user enable --now openclaw-gateway
+#
+# 日志查看:
+#   journalctl --user -u openclaw-gateway -f
+
+[Unit]
+Description=OpenClaw Gateway - AI Assistant Backend
+Documentation=https://docs.openclaw.ai
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/openclaw gateway --port 18789
+Restart=on-failure
+RestartSec=5
+Environment=OPENCLAW_GATEWAY_PORT=18789
+# 如果需要代理，取消下面的注释
+# Environment=HTTP_PROXY=http://127.0.0.1:7890
+# Environment=HTTPS_PROXY=http://127.0.0.1:7890
+
+[Install]
+WantedBy=default.target
