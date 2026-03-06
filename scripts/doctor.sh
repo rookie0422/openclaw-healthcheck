@@ -55,24 +55,24 @@ check_api() {
 }
 
 check_network() {
-    # 兼容 Linux 和 macOS
-    if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
+    # WSL 下 ping 可能不稳定，优先用 curl 测试网络
+    if curl -s --max-time 3 https://www.baidu.com > /dev/null 2>&1; then
         return 0
     fi
-    # macOS 备用
-    if ping -c 1 -W 3000 8.8.8.8 > /dev/null 2>&1; then
+    # 备用：ping 测试
+    if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
         return 0
     fi
     return 1
 }
 
 check_model_api() {
-    # 检查 AI 模型 API 是否可达
-    if curl -s --max-time 10 https://api.siliconflow.cn/v1/models 2>&1 | grep -q "error\|data"; then
-        return 0
-    fi
-    # 备用：检查 OpenAI
-    if curl -s --max-time 10 https://api.openai.com/v1/models 2>&1 | grep -q "error\|data"; then
+    # 检查 AI 模型 API 是否可达（SiliconFlow）
+    # 只检查 SiliconFlow（你用的是这个），OpenAI 在国内会超时
+    local response
+    response=$(curl -s --max-time 5 https://api.siliconflow.cn/v1/models 2>&1)
+    # 返回任何内容都算可达（包括 "Invalid token" 错误信息，说明 API 服务在线）
+    if [[ -n "$response" ]]; then
         return 0
     fi
     return 1
