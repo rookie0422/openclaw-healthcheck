@@ -9,7 +9,7 @@ set -e
 # 配置区域 - 根据你的环境修改
 # ============================================================================
 GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
-OPENCLAW_BIN="${OPENCLAW_BIN:-$(which openclaw 2>/dev/null || echo '/usr/local/bin/openclaw')}"
+OPENCLAW_BIN="${OPENCLAW_BIN:-$(which openclaw 2>/dev/null || echo '')}"
 
 # ============================================================================
 # 颜色定义
@@ -56,22 +56,33 @@ check_api() {
 
 check_network() {
     # 兼容 Linux 和 macOS
-    local ping_cmd="ping -c 1 -W 3"
-    if [[ "$(uname)" == "Darwin" ]]; then
-        ping_cmd="ping -c 1 -W 3000"  # macOS 用毫秒
+    if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
+        return 0
     fi
-    
-    if $ping_cmd 8.8.8.8 > /dev/null 2>&1; then
+    # macOS 备用
+    if ping -c 1 -W 3000 8.8.8.8 > /dev/null 2>&1; then
         return 0
     fi
     return 1
 }
 
 check_model_api() {
+    # 检查 AI 模型 API 是否可达
     if curl -s --max-time 10 https://api.siliconflow.cn/v1/models 2>&1 | grep -q "error\|data"; then
         return 0
     fi
+    # 备用：检查 OpenAI
+    if curl -s --max-time 10 https://api.openai.com/v1/models 2>&1 | grep -q "error\|data"; then
+        return 0
+    fi
     return 1
+}
+
+is_notify_available() {
+    if [[ -z "$OPENCLAW_BIN" ]] || [[ ! -x "$OPENCLAW_BIN" ]]; then
+        return 1
+    fi
+    "$OPENCLAW_BIN" message send --help > /dev/null 2>&1
 }
 
 restart_gateway() {
@@ -85,10 +96,15 @@ restart_gateway() {
     sleep 2
     
     # 启动
-    if command -v systemctl &> /dev/null && systemctl --user is-enabled openclaw-gateway &>/dev/null; then
-        systemctl --user start openclaw-gateway
+    if [[ -n "$OPENCLAW_BIN" ]]; then
+        if command -v systemctl &> /dev/null && systemctl --user is-enabled openclaw-gateway &>/dev/null; then
+            systemctl --user start openclaw-gateway 2>/dev/null || "$OPENCLAW_BIN" gateway start
+        else
+            "$OPENCLAW_BIN" gateway start
+        fi
     else
-        "$OPENCLAW_BIN" gateway start
+        log_err "openclaw 命令未找到"
+        return 1
     fi
     sleep 3
     
@@ -104,8 +120,18 @@ restart_gateway() {
 
 send_notification() {
     local message="$1"
-    if command -v openclaw &> /dev/null; then
-        openclaw message send --channel feishu --message "$message" > /dev/null 2>&1 || true
+    
+    if ! is_notify_available; then
+        log_warn "通知不可用（未配置消息通道）"
+        return 1
+    fi
+    
+    if "$OPENCLAW_BIN" message send --message "$message" > /dev/null 2>&1; then
+        log_info "已发送通知"
+        return 0
+    else
+        log_warn "发送通知失败"
+        return 1
     fi
 }
 
@@ -126,6 +152,8 @@ main() {
                 echo "用法: $0 [--auto]"
                 echo "  --auto, -a : 自动修复，不询问"
                 echo "  --help, -h : 显示帮助"
+                echo ""
+                echo "注意: 通知功能需要 OpenClaw 已配置消息通道"
                 exit 0
                 ;;
             *)
@@ -180,6 +208,16 @@ main() {
         network_ok=false
     fi
     
+    # 5. 检查通知能力
+    echo -en "🔍 通知渠道... "
+    if is_notify_available; then
+        log_ok "已配置"
+        notify_ok=true
+    else
+        log_warn "未配置（可选）"
+        notify_ok=false
+    fi
+    
     echo ""
     echo "────────────────────────────────────────────"
     
@@ -214,12 +252,13 @@ main() {
     
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         if restart_gateway; then
-            echo ""
-            echo "是否发送飞书通知？(y/n)"
-            read -r notify
-            if [[ "$notify" =~ ^[Yy]$ ]]; then
-                send_notification "🤖 OpenClaw Gateway 已重启\n\n我可以正常工作了！\n时间: $(date '+%Y-%m-%d %H:%M:%S')"
-                log_info "已发送通知"
+            if [[ "$notify_ok" == true ]]; then
+                echo ""
+                echo "是否发送通知？(y/n)"
+                read -r notify
+                if [[ "$notify" =~ ^[Yy]$ ]]; then
+                    send_notification "🤖 OpenClaw Gateway 已重启\n\n我可以正常工作了！\n时间: $(date '+%Y-%m-%d %H:%M:%S')"
+                fi
             fi
         fi
     fi

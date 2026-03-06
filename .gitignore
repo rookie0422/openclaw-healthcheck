@@ -1,0 +1,10 @@
+# 日志文件（生成时创建）
+logs/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
