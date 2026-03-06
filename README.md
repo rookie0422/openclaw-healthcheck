@@ -2,11 +2,6 @@
 
 OpenClaw Gateway 健康检查工具 - 监控、诊断、自动恢复。
 
-> ⚠️ **注意：这是监控工具，不是安装工具。**
-> 
-> 本工具用于监控**已有的** OpenClaw Gateway 服务，不会安装或卸载 OpenClaw。
-> 如果你还没安装 OpenClaw，请参考 [OpenClaw 文档](https://docs.openclaw.ai)。
-
 ## 解决什么问题？
 
 当你在使用 OpenClaw（AI 助手）时，可能会遇到以下情况：
@@ -28,6 +23,9 @@ OpenClaw Gateway 健康检查工具 - 监控、诊断、自动恢复。
 | `doctor.sh` | 一键诊断 | 手动排查问题，交互式修复 |
 | `health-check.sh` | 健康检查 | 定时任务用，自动检测+重启 |
 | `install-cron.sh` | 安装定时任务 | 配置定时健康检查 |
+
+> ⚠️ **注意：本工具不会安装或卸载 OpenClaw，也不会修改 OpenClaw 的配置。**
+> 它只监控现有的 OpenClaw Gateway 服务，在检测到问题时尝试重启。
 
 ## 快速开始
 
@@ -157,8 +155,8 @@ openclaw-healthcheck/
 
 | 系统 | 支持 | 说明 |
 |------|------|------|
-| Linux | ✅ 完全支持 | 支持 systemd 服务管理 |
-| macOS | ✅ 基本支持 | 使用进程检测重启 |
+| Linux | ✅ 完全支持 | 支持 systemd 服务 |
+| macOS | ✅ 基本支持 | 不支持 systemd，其他功能正常 |
 | WSL | ✅ 支持 | systemd 可能不稳定，但检测功能正常 |
 
 依赖：
