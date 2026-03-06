@@ -73,18 +73,19 @@ uninstall_cron() {
 }
 
 show_help() {
-    echo "用法: $0 [选项]"
+    echo "用法: $0 [选项] [间隔分钟]"
     echo ""
     echo "选项:"
-    echo "  --install, -i [分钟]  安装 cron 任务（默认 15 分钟）"
-    echo "  --uninstall, -u       卸载 cron 任务"
-    echo "  --status, -s          显示 cron 状态"
-    echo "  --help, -h            显示帮助"
+    echo "  无参数              安装 cron 任务（默认 15 分钟）"
+    echo "  [数字]              安装 cron 任务，指定间隔（如: 30）"
+    echo "  --uninstall, -u     卸载 cron 任务"
+    echo "  --status, -s        显示 cron 状态"
+    echo "  --help, -h          显示帮助"
     echo ""
     echo "示例:"
-    echo "  $0                    # 安装，每 15 分钟检查"
-    echo "  $0 --interval 30      # 安装，每 30 分钟检查"
-    echo "  $0 --uninstall        # 卸载"
+    echo "  $0                  # 安装，每 15 分钟检查"
+    echo "  $0 30               # 安装，每 30 分钟检查"
+    echo "  $0 --uninstall      # 卸载"
 }
 
 show_status() {

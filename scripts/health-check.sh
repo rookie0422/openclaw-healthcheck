@@ -24,8 +24,7 @@ STATUS_FILE="$LOG_DIR/gateway-status.json"
 # 日志函数
 # ============================================================================
 log() {
-    mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE" 2>/dev/null || true
+    # 只输出到 stdout，由 cron 重定向到日志文件
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
